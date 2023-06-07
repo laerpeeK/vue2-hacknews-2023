@@ -2,15 +2,27 @@ import { shallowMount } from '@vue/test-utils'
 import Item from '../Item.vue'
 
 describe('Item.vue', () => {
-  test('renders item.url', () => {
+  // test('renders item.url', () => {
+  //   const item = {
+  //     url: '10',
+  //     title: 'some title'
+  //   }
+  //   const wrapper = shallowMount(Item, {
+  //     propsData: { item }
+  //   })
+  //   expect(wrapper.text()).toContain(item.title)
+  // })
+
+  test('renders the hostname', () => {
     const item = {
-      url: '10',
-      title: 'some title'
+      url: 'https://some-url.com/with-paths'
     }
     const wrapper = shallowMount(Item, {
-      propsData: { item }
+      propsData: {
+        item
+      }
     })
-    expect(wrapper.text()).toContain(item.title)
+    expect(wrapper.text()).toContain('(some-url.com)')
   })
 
   test('renders a link to the item.url with item.title as text', () => {
@@ -48,5 +60,23 @@ describe('Item.vue', () => {
       }
     })
     expect(wrapper.text()).toContain(item.by)
+  })
+
+  test('renders the time since the last post', () => {
+    const dateNow = jest.spyOn(Date, 'now')
+    const dateNowTime = new Date('2023')
+
+    dateNow.mockImplementation(() => dateNowTime)
+
+    const item = {
+      time: (dateNowTime / 1000) - 600
+    }
+    const wrapper = shallowMount(Item, {
+      propsData: {
+        item
+      }
+    })
+    dateNow.mockRestore()
+    expect(wrapper.text()).toContain('10 minutes ago')
   })
 })
