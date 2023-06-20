@@ -32,7 +32,7 @@
   9. vue-router介绍 √
   10. 测试vue-router(路由属性，RouterLink组件，vuex结合vue-router测试) √
   11. 测试Vue中的mixin和filter(全局，组件内部测试) √
-  12. 快照测试 ~ 进行中
+  12. 快照测试 √
   13. 测试服务端渲染 ~ 进行中
   14. 端到端测试 ~ 进行中
 
