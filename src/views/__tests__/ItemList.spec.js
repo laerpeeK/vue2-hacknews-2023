@@ -7,69 +7,54 @@ import mergeWith from 'lodash.mergewith'
 const localVue = createLocalVue()
 localVue.use(Vuex)
 
-function customizer(objValue, srcValue) {
-  if (Array.isArray(srcValue)) {
-    return srcValue
-  }
+describe('ItemList.vue', () => {
+  function customizer(objValue, srcValue) {
+    if (Array.isArray(srcValue)) {
+      return srcValue
+    }
 
-  if (srcValue instanceof Object && Object.keys(srcValue).length === 0) {
-    return srcValue
-  }
-}
-
-function createStore(overrides) {
-  const defaultStoreConfig = {
-    getters: {
-      displayItems: jest.fn()
-    },
-    actions: {
-      fetchListData: jest.fn(() => Promise.resolve())
+    if (srcValue instanceof Object && Object.keys(srcValue).length === 0) {
+      return srcValue
     }
   }
-  return new Vuex.Store(mergeWith(defaultStoreConfig, overrides, customizer))
-}
 
-function createWrapper(overrides) {
-  const defaultMountingOptions = {
-    stubs: {
-      RouterLink: RouterLinkStub
-    },
-    mocks: {
-      $bar: {
-        start: jest.fn(),
-        finish: jest.fn(),
-        fail: jest.fn()
+  function createStore(overrides) {
+    const defaultStoreConfig = {
+      getters: {
+        displayItems: jest.fn()
       },
-      $route: {
-        params: {
-          type: 'top'
-        }
+      actions: {
+        fetchListData: jest.fn(() => Promise.resolve())
       }
-    },
-    localVue,
-    store: createStore()
+    }
+    return new Vuex.Store(mergeWith(defaultStoreConfig, overrides, customizer))
   }
-  return shallowMount(
-    ItemList,
-    mergeWith(defaultMountingOptions, overrides, customizer)
-  )
-}
 
-describe('ItemList.vue', () => {
-  // 采用工厂函数替代beforeEach方案
-  // let storeOptions
-  // let store
-  // beforeEach(() => {
-  //   storeOptions = {
-  //     getters: {
-  //       displayItems: jest.fn()
-  //     },
-  //     actions: {
-  //       fetchListData: jest.fn(() => Promise.resolve())
-  //     }
-  //   }
-  //   store = new Vuex.Store(storeOptions)
-  // })
+  function createWrapper(overrides) {
+    const defaultMountingOptions = {
+      stubs: {
+        RouterLink: RouterLinkStub
+      },
+      mocks: {
+        $bar: {
+          start: jest.fn(),
+          finish: jest.fn(),
+          fail: jest.fn()
+        },
+        $route: {
+          params: {
+            type: 'top'
+          }
+        }
+      },
+      localVue,
+      store: createStore()
+    }
+    return shallowMount(
+      ItemList,
+      mergeWith(defaultMountingOptions, overrides, customizer)
+    )
+  }
 
   test('renders an Item with data for each item in displayItems', async () => {
     expect.assertions(4)
@@ -98,7 +83,6 @@ describe('ItemList.vue', () => {
     })
   })
 
-  // chapter-11
   test('sets document.title with the capitalized type prop', () => {
     createWrapper({
       mocks: {
@@ -112,7 +96,6 @@ describe('ItemList.vue', () => {
     expect(document.title).toBe('Vue HN | Top')
   })
 
-  // chapter-10
   test('dispatchers fetchListData with $route.params.type', async () => {
     expect.assertions(1)
     const store = createStore()
@@ -180,6 +163,40 @@ describe('ItemList.vue', () => {
     expect(mocks.$router.replace).toHaveBeenCalledWith('/top/1')
   })
 
+  test('calls $router.replace when the page parameter is 0', async () => {
+    expect.assertions(1)
+    const mocks = {
+      $route: {
+        params: {
+          page: '0'
+        }
+      },
+      $router: {
+        replace: jest.fn()
+      }
+    }
+    createWrapper({ mocks })
+    await flushPromises()
+    expect(mocks.$router.replace).toHaveBeenCalledWith('/top/1')
+  })
+
+  test('calls $router.replace when the page parameter is not a number', async () => {
+    expect.assertions(1)
+    const mocks = {
+      $route: {
+        params: {
+          page: 'abc'
+        }
+      },
+      $router: {
+        replace: jest.fn()
+      }
+    }
+    createWrapper({ mocks })
+    await flushPromises()
+    expect(mocks.$router.replace).toHaveBeenCalledWith('/top/1')
+  })
+
   test('renders a RouterLink with the previous page if one exists', () => {
     const mocks = {
       $route: {
@@ -241,7 +258,18 @@ describe('ItemList.vue', () => {
     expect(wrapper.findAll('a').at(1).text()).toBe('more >')
   })
 
-  // chapter-8
+  test('sets document.title with the capitalized type prop', () => {
+    createWrapper({
+      mocks: {
+        $route: {
+          params: {
+            type: 'top'
+          }
+        }
+      }
+    })
+    expect(document.title).toBe('Vue HN | Top')
+  })
 
   test('calls $bar start on render', () => {
     const mocks = {
@@ -264,17 +292,6 @@ describe('ItemList.vue', () => {
     expect(mocks.$bar.finish).toHaveBeenCalled()
   })
 
-  // test('dispatches fetchListData with top', async () => {
-  //   const store = createStore()
-  //   store.dispatch = jest.fn(() => Promise.resolve())
-  //   createWrapper({ store })
-
-  //   await flushPromises()
-  //   expect(store.dispatch).toHaveBeenCalledWith('fetchListData', {
-  //     type: 'top'
-  //   })
-  // })
-
   test('calls $bar fail when fetchListData throws', async () => {
     const store = createStore({
       actions: { fetchListData: jest.fn(() => Promise.reject()) }
@@ -288,49 +305,4 @@ describe('ItemList.vue', () => {
     await flushPromises()
     expect(mocks.$bar.fail).toHaveBeenCalled()
   })
-  // chapter-7
-  // test('calls $bar start on load', () => {
-  //   const $bar = {
-  //     start: jest.fn(),
-  //     finish: () => {}
-  //   }
-  //   shallowMount(ItemList, { mocks: { $bar }, localVue, store })
-  //   expect($bar.start).toHaveBeenCalled()
-  // })
-
-  // test('calls $bar finish when load successful', async () => {
-  //   expect.assertions(1)
-  //   const $bar = {
-  //     start: () => {},
-  //     finish: jest.fn()
-  //   }
-  //   shallowMount(ItemList, { mocks: { $bar }, localVue, store })
-  //   await flushPromises()
-  //   expect($bar.finish).toHaveBeenCalled()
-  // })
-
-  // test('dispatches fetchListData with top', async () => {
-  //   expect.assertions(1)
-  //   const $bar = {
-  //     start: () => {},
-  //     finish: () => {}
-  //   }
-  //   store.dispatch = jest.fn(() => Promise.resolve())
-  //   shallowMount(ItemList, { mocks: { $bar }, localVue, store })
-  //   expect(store.dispatch).toHaveBeenCalledWith('fetchListData', {
-  //     type: 'top'
-  //   })
-  // })
-
-  // test('calls $bar fail when fetchListData throws', async () => {
-  //   expect.assertions(1)
-  //   const $bar = {
-  //     start: jest.fn(),
-  //     fail: jest.fn()
-  //   }
-  //   storeOptions.actions.fetchListData.mockRejectedValue()
-  //   shallowMount(ItemList, { mocks: { $bar }, localVue, store })
-  //   await flushPromises()
-  //   expect($bar.fail).toHaveBeenCalled()
-  // })
 })

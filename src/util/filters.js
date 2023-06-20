@@ -1,4 +1,4 @@
-export function host (url) {
+export function host(url) {
   if (!url) {
     return ''
   }

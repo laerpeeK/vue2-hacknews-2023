@@ -1,22 +1,14 @@
 <template>
   <div class="item-list-view">
     <div class="item-list-nav">
-      <router-link
-        v-if="$route.params.page > 1"
-        :to="'/' + $route.params.type + '/' + ($route.params.page - 1)"
-      >
+      <router-link v-if="page > 1" :to="'/' + type + '/' + (page - 1)">
         &lt; prev
       </router-link>
       <a v-else>&lt; prev</a>
-      <span>{{ $route.params.page || 1 }}/{{ $store.getters.maxPage }}</span>
+      <span>{{ page || 1 }}/{{ maxPage }}</span>
       <router-link
-        v-if="($route.params.page || 1) < $store.getters.maxPage"
-        :to="
-          '/' +
-          $route.params.type +
-          '/' +
-          ((Number($route.params.page) || 1) + 1)
-        "
+        v-if="(page || 1) < maxPage"
+        :to="'/' + type + '/' + ((Number(page) || 1) + 1)"
       >
         more &gt;
       </router-link>
@@ -34,7 +26,7 @@
 
 <script>
 import Item from '../components/Item.vue'
-// import { titleMixin } from '../util/mixins'
+
 function capitalizeFirstLetter(string) {
   return string.charAt(0).toUpperCase() + string.slice(1)
 }
@@ -46,16 +38,30 @@ export default {
   beforeMount() {
     this.loadItems()
   },
+  computed: {
+    type() {
+      return this.$route.params.type
+    },
+    page() {
+      return this.$route.params.page
+    },
+    maxPage() {
+      return this.$store.getters.maxPage
+    }
+  },
   methods: {
     loadItems() {
       this.$bar.start()
       this.$store
         .dispatch('fetchListData', {
-          type: this.$route.params.type
+          type: this.type
         })
         .then(() => {
-          if (this.$route.params.page > this.$store.getters.maxPage) {
-            this.$router.replace(`/${this.$route.params.type}/1`)
+          if (
+            this.page &&
+            (this.page > this.maxPage || this.page <= 0 || !Number(this.page))
+          ) {
+            this.$router.replace(`/${this.type}/1`)
             return
           }
           this.$bar.finish()
@@ -66,7 +72,6 @@ export default {
   title() {
     return `${capitalizeFirstLetter(this.$route.params.type)}`
   }
-  // mixins: [titleMixin]
 }
 </script>
 <style>
@@ -81,6 +86,25 @@ export default {
   width: 100%;
   transition: all 0.5s cubic-bezier(0.55, 0, 0.1, 1);
 }
+
+.item-list-nav {
+  padding: 15px 30px;
+  position: fixed;
+  text-align: center;
+  top: 55px;
+  left: 0;
+  right: 0;
+  z-index: 998;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  background-color: #fff;
+}
+.item-list-nav a {
+  margin: 0 1em;
+}
+.item-list-nav .disabled {
+  color: #ccc;
+}
+
 @media (max-width: 600px) {
   .item-list {
     margin: 10px 0;

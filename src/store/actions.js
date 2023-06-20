@@ -7,7 +7,7 @@ export default {
     if (!item) {
       return
     }
-    return fetchItems(item.ids || []).then((comments) => {
+    return fetchItems(item.kids || []).then((comments) => {
       commit('setComments', { comments })
       return Promise.all(
         comments.map((item) => dispatch('fetchComments', { item }))
